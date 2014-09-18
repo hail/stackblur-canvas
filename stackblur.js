@@ -1,5 +1,5 @@
-var Blur = Class.extend({
-  defaults : {
+var Blur = Backbone.Model.extend({
+  defs : {
     radius : 1,
     mul_table : [
       512,512,456,512,328,456,335,512,405,328,271,456,388,335,292,512,
@@ -20,18 +20,18 @@ var Blur = Class.extend({
       289,287,285,282,280,278,275,273,271,269,267,265,263,261,259
     ],
     shg_table : [
-      9, 11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17, 
-      17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19, 
+      9, 11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17,
+      17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19,
       19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20,
       20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21,
       21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21,
-      21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 
+      21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22,
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
-      22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 23, 
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 23,
       23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
       23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
-      23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 
-      23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 
+      23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
+      23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
       24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
       24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
       24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
@@ -50,36 +50,36 @@ var Blur = Class.extend({
       backgroundSize : 'cover'
     }
   },
-  init : function(options) {
-    for(var key in options) this.defaults[key] = options[key];
-    if(this.defaults.fullscreen) for(var key in this.defaults.styles) this.defaults.el.style[key] = this.defaults.styles[key];
+  initialize : function(attributes, options) {
+    for(var key in options) this.defs[key] = options[key];
+    if(this.defs.fullscreen) for(var key in this.defs.styles) this.defs.el.style[key] = this.defs.styles[key];
 
     var self = this,
-        radius = this.defaults.radius,
+        radius = this.defs.radius,
         img = document.createElement('img');
 
     img.src = options.path;
     img.onload = function(e) {
       var canvas = document.createElement('canvas');
 
-      self.defaults.width = img.naturalWidth;
-      self.defaults.height = img.naturalHeight;
+      self.defs.width = img.naturalWidth;
+      self.defs.height = img.naturalHeight;
 
       canvas.id = 'canvas';
       canvas.style.display = 'none';
-      canvas.style.width  = self.defaults.width + 'px';
-      canvas.style.height = self.defaults.height + 'px';
-      canvas.width = self.defaults.width;
-      canvas.height = self.defaults.height;
-      
+      canvas.style.width  = self.defs.width + 'px';
+      canvas.style.height = self.defs.height + 'px';
+      canvas.width = self.defs.width;
+      canvas.height = self.defs.height;
+
       document.body.insertBefore(canvas, document.body.childNodes[0]);
 
       var context = canvas.getContext('2d');
-          context.clearRect(0, 0, self.defaults.width, self.defaults.height);
+          context.clearRect(0, 0, self.defs.width, self.defs.height);
           context.drawImage(img, 0, 0);
 
       if (isNaN(radius) || radius < 1) throw new Error('Radius required.');
-      
+
       if (options.path.match(/\w.\S+png/))
         self.stackBlurCanvasRGBA(function(){
           self.swap(canvas.toDataURL('image/png'));
@@ -94,16 +94,16 @@ var Blur = Class.extend({
     var self = this,
         canvas  = document.getElementById('canvas'),
         context = canvas.getContext('2d'),
-        radius = this.defaults.radius,
+        radius = this.defs.radius,
         top_x = 0,
         top_y = 0,
-        width = this.defaults.width,
-        height = this.defaults.height,
+        width = this.defs.width,
+        height = this.defs.height,
         imageData;
 
     if (isNaN(radius) || radius < 1) return;
     radius |= 0;
-    
+
     try {
       try {
         imageData = context.getImageData(top_x, top_y, width, height);
@@ -119,14 +119,14 @@ var Blur = Class.extend({
     } catch(e) {
       throw new Error('unable to access image data: ' + e);
     }
-        
+
     var pixels = imageData.data;
-        
-    var x, y, i, p, yp, yi, yw, r_sum, g_sum, b_sum, a_sum, 
+
+    var x, y, i, p, yp, yi, yw, r_sum, g_sum, b_sum, a_sum,
     r_out_sum, g_out_sum, b_out_sum, a_out_sum,
-    r_in_sum, g_in_sum, b_in_sum, a_in_sum, 
+    r_in_sum, g_in_sum, b_in_sum, a_in_sum,
     pr, pg, pb, pa, rbs;
-        
+
     var div = radius + radius + 1,
         w4 = width << 2,
         widthMinus1  = width - 1,
@@ -144,27 +144,27 @@ var Blur = Class.extend({
     stack.next = stackStart;
     var stackIn = null;
     var stackOut = null;
-    
+
     yw = yi = 0;
-    
-    var mul_sum = this.defaults.mul_table[radius],
-        shg_sum = this.defaults.shg_table[radius];
-    
+
+    var mul_sum = this.defs.mul_table[radius],
+        shg_sum = this.defs.shg_table[radius];
+
     for (y = 0; y < height; y++){
       r_in_sum = g_in_sum = b_in_sum = a_in_sum = r_sum = g_sum = b_sum = a_sum = 0;
-      
+
       r_out_sum = radiusPlus1 * (pr = pixels[yi]);
       g_out_sum = radiusPlus1 * (pg = pixels[yi+1]);
       b_out_sum = radiusPlus1 * (pb = pixels[yi+2]);
       a_out_sum = radiusPlus1 * (pa = pixels[yi+3]);
-      
+
       r_sum += sumFactor * pr;
       g_sum += sumFactor * pg;
       b_sum += sumFactor * pb;
       a_sum += sumFactor * pa;
-      
+
       stack = stackStart;
-      
+
       for(i = 0; i < radiusPlus1; i++){
         stack.r = pr;
         stack.g = pg;
@@ -172,22 +172,22 @@ var Blur = Class.extend({
         stack.a = pa;
         stack = stack.next;
       }
-      
+
       for(i = 1; i < radiusPlus1; i++){
         p = yi + ((widthMinus1 < i ? widthMinus1 : i) << 2);
         r_sum += (stack.r = (pr = pixels[p])) * (rbs = radiusPlus1 - i);
         g_sum += (stack.g = (pg = pixels[p+1])) * rbs;
         b_sum += (stack.b = (pb = pixels[p+2])) * rbs;
         a_sum += (stack.a = (pa = pixels[p+3])) * rbs;
-        
+
         r_in_sum += pr;
         g_in_sum += pg;
         b_in_sum += pb;
         a_in_sum += pa;
-        
+
         stack = stack.next;
       }
-      
+
       stackIn = stackStart;
       stackOut = stackEnd;
       for (x = 0; x < width; x++){
@@ -200,41 +200,41 @@ var Blur = Class.extend({
         } else {
           pixels[yi] = pixels[yi+1] = pixels[yi+2] = 0;
         }
-        
+
         r_sum -= r_out_sum;
         g_sum -= g_out_sum;
         b_sum -= b_out_sum;
         a_sum -= a_out_sum;
-        
+
         r_out_sum -= stackIn.r;
         g_out_sum -= stackIn.g;
         b_out_sum -= stackIn.b;
         a_out_sum -= stackIn.a;
-        
+
         p =  (yw + ((p = x + radius + 1) < widthMinus1 ? p : widthMinus1)) << 2;
-        
+
         r_in_sum += (stackIn.r = pixels[p]);
         g_in_sum += (stackIn.g = pixels[p+1]);
         b_in_sum += (stackIn.b = pixels[p+2]);
         a_in_sum += (stackIn.a = pixels[p+3]);
-        
+
         r_sum += r_in_sum;
         g_sum += g_in_sum;
         b_sum += b_in_sum;
         a_sum += a_in_sum;
-        
+
         stackIn = stackIn.next;
-        
+
         r_out_sum += (pr = stackOut.r);
         g_out_sum += (pg = stackOut.g);
         b_out_sum += (pb = stackOut.b);
         a_out_sum += (pa = stackOut.a);
-        
+
         r_in_sum -= pr;
         g_in_sum -= pg;
         b_in_sum -= pb;
         a_in_sum -= pa;
-        
+
         stackOut = stackOut.next;
 
         yi += 4;
@@ -242,23 +242,23 @@ var Blur = Class.extend({
       yw += width;
     }
 
-    
+
     for (x = 0; x < width; x++){
       g_in_sum = b_in_sum = a_in_sum = r_in_sum = g_sum = b_sum = a_sum = r_sum = 0;
-      
+
       yi = x << 2;
       r_out_sum = radiusPlus1 * (pr = pixels[yi]);
       g_out_sum = radiusPlus1 * (pg = pixels[yi+1]);
       b_out_sum = radiusPlus1 * (pb = pixels[yi+2]);
       a_out_sum = radiusPlus1 * (pa = pixels[yi+3]);
-      
+
       r_sum += sumFactor * pr;
       g_sum += sumFactor * pg;
       b_sum += sumFactor * pb;
       a_sum += sumFactor * pa;
-      
+
       stack = stackStart;
-      
+
       for(i = 0; i < radiusPlus1; i++){
         stack.r = pr;
         stack.g = pg;
@@ -266,27 +266,27 @@ var Blur = Class.extend({
         stack.a = pa;
         stack = stack.next;
       }
-      
+
       yp = width;
-      
+
       for(i = 1; i <= radius; i++){
         yi = (yp + x) << 2;
-        
+
         r_sum += (stack.r = (pr = pixels[yi])) * (rbs = radiusPlus1 - i);
         g_sum += (stack.g = (pg = pixels[yi+1])) * rbs;
         b_sum += (stack.b = (pb = pixels[yi+2])) * rbs;
         a_sum += (stack.a = (pa = pixels[yi+3])) * rbs;
-         
+
         r_in_sum += pr;
         g_in_sum += pg;
         b_in_sum += pb;
         a_in_sum += pa;
-        
+
         stack = stack.next;
-      
+
         if(i < heightMinus1) yp += width;
       }
-      
+
       yi = x;
       stackIn = stackStart;
       stackOut = stackEnd;
@@ -301,42 +301,42 @@ var Blur = Class.extend({
         } else {
           pixels[p] = pixels[p+1] = pixels[p+2] = 0;
         }
-        
+
         r_sum -= r_out_sum;
         g_sum -= g_out_sum;
         b_sum -= b_out_sum;
         a_sum -= a_out_sum;
-         
+
         r_out_sum -= stackIn.r;
         g_out_sum -= stackIn.g;
         b_out_sum -= stackIn.b;
         a_out_sum -= stackIn.a;
-        
+
         p = (x + (((p = y + radiusPlus1) < heightMinus1 ? p : heightMinus1) * width)) << 2;
-        
+
         r_sum += (r_in_sum += (stackIn.r = pixels[p]));
         g_sum += (g_in_sum += (stackIn.g = pixels[p+1]));
         b_sum += (b_in_sum += (stackIn.b = pixels[p+2]));
         a_sum += (a_in_sum += (stackIn.a = pixels[p+3]));
-         
+
         stackIn = stackIn.next;
-        
+
         r_out_sum += (pr = stackOut.r);
         g_out_sum += (pg = stackOut.g);
         b_out_sum += (pb = stackOut.b);
         a_out_sum += (pa = stackOut.a);
-        
+
         r_in_sum -= pr;
         g_in_sum -= pg;
         b_in_sum -= pb;
         a_in_sum -= pa;
-        
+
         stackOut = stackOut.next;
-        
+
         yi += width;
       }
     }
-    
+
     context.putImageData(imageData, top_x, top_y);
     callback();
   },
@@ -344,11 +344,11 @@ var Blur = Class.extend({
     var self = this,
         canvas  = document.getElementById('canvas'),
         context = canvas.getContext('2d'),
-        radius = this.defaults.radius,
+        radius = this.defs.radius,
         top_x = 0,
         top_y = 0,
-        width = this.defaults.width,
-        height = this.defaults.height,
+        width = this.defs.width,
+        height = this.defs.height,
         imageData;
 
     if (isNaN(radius) || radius < 1) return;
@@ -369,14 +369,14 @@ var Blur = Class.extend({
     } catch(e) {
       throw new Error('unable to access image data: ' + e);
     }
-        
+
     var pixels = imageData.data;
-        
+
     var x, y, i, p, yp, yi, yw, r_sum, g_sum, b_sum,
     r_out_sum, g_out_sum, b_out_sum,
     r_in_sum, g_in_sum, b_in_sum,
     pr, pg, pb, rbs;
-        
+
     var div = radius + radius + 1,
         w4 = width << 2,
         widthMinus1  = width - 1,
@@ -395,80 +395,80 @@ var Blur = Class.extend({
 
     var stackIn = null,
       stackOut = null;
-    
+
     yw = yi = 0;
-    
-    var mul_sum = this.defaults.mul_table[radius],
-        shg_sum = this.defaults.shg_table[radius];
-    
+
+    var mul_sum = this.defs.mul_table[radius],
+        shg_sum = this.defs.shg_table[radius];
+
     for (y = 0; y < height; y++){
       r_in_sum = g_in_sum = b_in_sum = r_sum = g_sum = b_sum = 0;
-      
+
       r_out_sum = radiusPlus1 * (pr = pixels[yi]);
       g_out_sum = radiusPlus1 * (pg = pixels[yi+1]);
       b_out_sum = radiusPlus1 * (pb = pixels[yi+2]);
-      
+
       r_sum += sumFactor * pr;
       g_sum += sumFactor * pg;
       b_sum += sumFactor * pb;
-      
+
       stack = stackStart;
-      
+
       for(i = 0; i < radiusPlus1; i++){
         stack.r = pr;
         stack.g = pg;
         stack.b = pb;
         stack = stack.next;
       }
-      
+
       for(i = 1; i < radiusPlus1; i++){
         p = yi + ((widthMinus1 < i ? widthMinus1 : i) << 2);
         r_sum += (stack.r = (pr = pixels[p])) * (rbs = radiusPlus1 - i);
         g_sum += (stack.g = (pg = pixels[p+1])) * rbs;
         b_sum += (stack.b = (pb = pixels[p+2])) * rbs;
-        
+
         r_in_sum += pr;
         g_in_sum += pg;
         b_in_sum += pb;
-        
+
         stack = stack.next;
       }
-      
+
       stackIn = stackStart;
       stackOut = stackEnd;
       for (x = 0; x < width; x++){
         pixels[yi]   = (r_sum * mul_sum) >> shg_sum;
         pixels[yi+1] = (g_sum * mul_sum) >> shg_sum;
         pixels[yi+2] = (b_sum * mul_sum) >> shg_sum;
-        
+
         r_sum -= r_out_sum;
         g_sum -= g_out_sum;
         b_sum -= b_out_sum;
-        
+
         r_out_sum -= stackIn.r;
         g_out_sum -= stackIn.g;
         b_out_sum -= stackIn.b;
-        
+
         p =  (yw + ((p = x + radius + 1) < widthMinus1 ? p : widthMinus1)) << 2;
-        
+
         r_in_sum += (stackIn.r = pixels[p]);
         g_in_sum += (stackIn.g = pixels[p+1]);
         b_in_sum += (stackIn.b = pixels[p+2]);
-        
+
         r_sum += r_in_sum;
         g_sum += g_in_sum;
         b_sum += b_in_sum;
-        
+
         stackIn = stackIn.next;
-        
+
         r_out_sum += (pr = stackOut.r);
         g_out_sum += (pg = stackOut.g);
         b_out_sum += (pb = stackOut.b);
-        
+
         r_in_sum -= pr;
         g_in_sum -= pg;
         b_in_sum -= pb;
-        
+
         stackOut = stackOut.next;
 
         yi += 4;
@@ -476,46 +476,46 @@ var Blur = Class.extend({
       yw += width;
     }
 
-    
+
     for (x = 0; x < width; x++){
       g_in_sum = b_in_sum = r_in_sum = g_sum = b_sum = r_sum = 0;
-      
+
       yi = x << 2;
       r_out_sum = radiusPlus1 * (pr = pixels[yi]);
       g_out_sum = radiusPlus1 * (pg = pixels[yi+1]);
       b_out_sum = radiusPlus1 * (pb = pixels[yi+2]);
-      
+
       r_sum += sumFactor * pr;
       g_sum += sumFactor * pg;
       b_sum += sumFactor * pb;
-      
+
       stack = stackStart;
-      
+
       for(i = 0; i < radiusPlus1; i++){
         stack.r = pr;
         stack.g = pg;
         stack.b = pb;
         stack = stack.next;
       }
-      
+
       yp = width;
-      
+
       for(i = 1; i <= radius; i++){
         yi = (yp + x) << 2;
-        
+
         r_sum += (stack.r = (pr = pixels[yi])) * (rbs = radiusPlus1 - i);
         g_sum += (stack.g = (pg = pixels[yi+1])) * rbs;
         b_sum += (stack.b = (pb = pixels[yi+2])) * rbs;
-        
+
         r_in_sum += pr;
         g_in_sum += pg;
         b_in_sum += pb;
-        
+
         stack = stack.next;
-      
+
         if(i < heightMinus1) yp += width;
       }
-      
+
       yi = x;
       stackIn = stackStart;
       stackOut = stackEnd;
@@ -524,37 +524,37 @@ var Blur = Class.extend({
         pixels[p]   = (r_sum * mul_sum) >> shg_sum;
         pixels[p+1] = (g_sum * mul_sum) >> shg_sum;
         pixels[p+2] = (b_sum * mul_sum) >> shg_sum;
-        
+
         r_sum -= r_out_sum;
         g_sum -= g_out_sum;
         b_sum -= b_out_sum;
-        
+
         r_out_sum -= stackIn.r;
         g_out_sum -= stackIn.g;
         b_out_sum -= stackIn.b;
-        
+
         p = (x + (((p = y + radiusPlus1) < heightMinus1 ? p : heightMinus1) * width)) << 2;
-        
+
         r_sum += (r_in_sum += (stackIn.r = pixels[p]));
         g_sum += (g_in_sum += (stackIn.g = pixels[p+1]));
         b_sum += (b_in_sum += (stackIn.b = pixels[p+2]));
-        
+
         stackIn = stackIn.next;
-        
+
         r_out_sum += (pr = stackOut.r);
         g_out_sum += (pg = stackOut.g);
         b_out_sum += (pb = stackOut.b);
-        
+
         r_in_sum -= pr;
         g_in_sum -= pg;
         b_in_sum -= pb;
-        
+
         stackOut = stackOut.next;
-        
+
         yi += width;
       }
     }
-    
+
     context.putImageData(imageData, top_x, top_y);
     callback();
   },
@@ -566,16 +566,16 @@ var Blur = Class.extend({
       a : 0,
       next : null
     }
-  },  
+  },
   remove : function(el) {
     c = document.getElementById(el);
     c.parentNode.removeChild(c);
   },
   swap : function(base) {
     this.remove('canvas');
-    if(this.defaults.el instanceof HTMLImageElement)
-      this.defaults.el.src = base;
+    if(this.defs.el instanceof HTMLImageElement)
+      this.defs.el.src = base;
     else
-      this.defaults.el.style.backgroundImage = 'url(' + base + ')';
+      this.defs.el.style.backgroundImage = 'url(' + base + ')';
   }
 });
