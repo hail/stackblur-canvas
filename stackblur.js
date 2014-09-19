@@ -59,6 +59,8 @@ var Blur = Backbone.Model.extend({
         img = document.createElement('img');
 
     img.src = options.path;
+    img.crossOrigin = '';
+
     img.onload = function(e) {
       var canvas = document.createElement('canvas');
 
