@@ -1,6 +1,7 @@
 var Blur = Backbone.Model.extend({
   defs : {
     radius : 1,
+    radiusFactor : 1,
     mul_table : [
       512,512,456,512,328,456,335,512,405,328,271,456,388,335,292,512,
       454,405,364,328,298,271,496,456,420,388,360,335,312,292,273,512,
@@ -48,18 +49,69 @@ var Blur = Backbone.Model.extend({
       MozBackgroundSize : 'cover',
       OBackgroundSize : 'cover',
       backgroundSize : 'cover'
-    }
+    },
+    backgroundImagePrefix: ''
   },
   initialize : function(attributes, options) {
     for(var key in options) this.defs[key] = options[key];
+
     if(this.defs.fullscreen) for(var key in this.defs.styles) this.defs.el.style[key] = this.defs.styles[key];
 
     var self = this,
-        radius = this.defs.radius,
         img = document.createElement('img');
 
-    img.src = options.path;
-    img.crossOrigin = '';
+    this.defs.radius = this.defs.radiusFactor * this.defs.radius;
+    var radius = this.defs.radius;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", options.path, true);
+
+    xhr.responseType = "arraybuffer";
+
+    xhr.onload = function (oEvent) {
+
+      var arrayBuffer = xhr.response; // Note: not xhr.responseText
+      if (arrayBuffer) {
+        var byteArray = new Uint8Array(arrayBuffer);
+
+        var blob = new Blob([byteArray], {'type': 'image\/jpeg'});
+        var objectURL = window.URL.createObjectURL(blob);
+
+        img.src = objectURL;
+      }
+    };
+
+    xhr.send(null);
+
+
+    // $.ajax({
+    //   async: true,
+    //   type: 'GET',
+    //   url: options.path,
+    //   beforeSend: function(jqXHR, settings) {
+    //
+    //     // jqXHR.overrideMimeType("text/plain; charset=x-user-defined");
+    //
+    //     jqXHR.overrideMimeType("arraybuffer");
+    //
+    //   }
+    // }).done(function(data, textStatus, jqXHR) {
+    //
+    //   var contentType = jqXHR.getResponseHeader("content-type");
+    //
+    //   // jqXHR.overrideMimeType("text/plain; charset=x-user-defined");
+    //
+    //   // var dataURI = 'data:' + contentType + ';base64,' + btoa(jqXHR.responseText);
+    //
+    //   var arrayBufferView = new Uint8Array(jqXHR.responseText),
+    //     blob = new Blob([arrayBufferView], {'type': 'image\/jpeg'}),
+    //     objectURL = window.URL.createObjectURL(blob);
+    //
+    //   debugger;
+    //
+    // });
+    //
+    // return;
 
     img.onload = function(e) {
       var canvas = document.createElement('canvas');
@@ -567,7 +619,7 @@ var Blur = Backbone.Model.extend({
       b : 0,
       a : 0,
       next : null
-    }
+    };
   },
   remove : function(el) {
     c = document.getElementById(el);
@@ -578,6 +630,6 @@ var Blur = Backbone.Model.extend({
     if(this.defs.el instanceof HTMLImageElement)
       this.defs.el.src = base;
     else
-      this.defs.el.style.backgroundImage = 'url(' + base + ')';
+      this.defs.el.style.backgroundImage = this.defs.backgroundImagePrefix + ' url(' + base + ')';
   }
 });

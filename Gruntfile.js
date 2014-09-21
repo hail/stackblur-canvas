@@ -4,6 +4,7 @@ module.exports = function(grunt) {
   demoBower = [
     'underscore/underscore.js',
     'backbone/backbone.js',
+    'jquery/dist/jquery.js'
   ];
 
   demoJS = [
@@ -32,20 +33,29 @@ module.exports = function(grunt) {
         src: demoJS,
         dest: 'demo/javascript/'
       }
+    },
+
+    watch: {
+      demo: {
+        files: demoJS,
+        options: {
+          livereload: true
+        },
+        tasks: ['buildDemo']
+      }
     }
 
     // uglify: {
     //
-    // },
+    // }
 
-    // watch: {
-    //
-    // },
   });
 
   matchdep = require('matchdep');
   matchdep.filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
   grunt.registerTask('buildDemo', ['bowercopy:demo', 'copy:demo']);
+
+  grunt.registerTask('dev', ['buildDemo', 'watch']);
 
 };
